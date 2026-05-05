@@ -1,0 +1,29 @@
+# Dependencies
+node_modules/
+client/node_modules/
+server/node_modules/
+
+# Environment Variables
+.env
+client/.env
+server/.env
+
+# Production Builds
+client/dist/
+dist/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Uploads & Assets
+uploads/
+server/uploads/
+
+# IDE & OS Files
+.DS_Store
+.vscode/
+.idea/
+*.swp
+*.swo
