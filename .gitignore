@@ -9,8 +9,6 @@ client/.env
 server/.env
 
 # Production Builds
-client/dist/
-dist/
 
 # Logs
 npm-debug.log*
