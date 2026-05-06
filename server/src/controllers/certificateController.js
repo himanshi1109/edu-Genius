@@ -10,22 +10,39 @@ const getModel = () => {
   if (!process.env.GEMINI_API_KEY || process.env.GEMINI_API_KEY === 'dummy_key') {
     throw new Error('Gemini API key is not configured on the server');
   }
-  const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-  return genAI.getGenerativeModel({ model: 'gemini-pro' });
+  return new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 };
 
-// Helper for retries
-const generateWithRetry = async (model, prompt, retries = 2) => {
-  for (let i = 0; i <= retries; i++) {
+// Helper for retries and model fallback
+const generateWithRetry = async (genAI, prompt, retries = 1) => {
+  const modelsToTry = ['gemini-2.5-flash-lite', 'gemini-1.5-flash', 'gemini-2.0-flash', 'gemini-pro'];
+  let lastError;
+
+  for (const modelName of modelsToTry) {
     try {
+      console.log(`Certificate AI: Trying model ${modelName}...`);
+      const model = genAI.getGenerativeModel({ 
+        model: modelName,
+        safetySettings: [
+          { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_NONE' },
+          { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_NONE' },
+          { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_NONE' },
+          { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_NONE' },
+        ]
+      });
       const result = await model.generateContent(prompt);
+      if (!result.response) throw new Error('Empty response');
       return result;
     } catch (error) {
-      if (i === retries) throw error;
-      await new Promise(r => setTimeout(r, 2000));
+      console.error(`Certificate AI: Model ${modelName} failed: ${error.message}`);
+      lastError = error;
+      if (error.message.includes('404') || error.message.includes('429')) continue;
+      if (modelName === modelsToTry[modelsToTry.length - 1]) throw error;
     }
   }
+  throw lastError;
 };
+
 
 // @desc    Request a certificate after completion
 // @route   POST /api/certificates/request/:courseId
@@ -43,13 +60,14 @@ export const requestCertificate = async (req, res, next) => {
     // AI Generation of personalized summary
     let aiSummary = '';
     try {
-      const model = getModel();
+      const genAI = getModel();
       const prompt = `Write a short, professional, and encouraging 2-sentence achievement summary for a certificate. 
       Student: ${user.name}
       Course: ${course.title}
       Include praise for their dedication and potential in this field.`;
-      const result = await generateWithRetry(model, prompt);
+      const result = await generateWithRetry(genAI, prompt);
       aiSummary = result.response.text().trim();
+
     } catch (aiErr) {
       console.warn('AI Certificate Summary generation failed:', aiErr.message);
       aiSummary = `Successfully completed all modules and requirements for the ${course.title} course.`;
@@ -117,8 +135,39 @@ export const updateCertificateStatus = async (req, res, next) => {
   } catch (error) { next(error); }
 };
 
+// @desc    Get certificate by ID
+export const getCertificateById = async (req, res, next) => {
+  try {
+    const cert = await Certificate.findById(req.params.id)
+      .populate('userId', 'name email')
+      .populate({
+        path: 'courseId',
+        select: 'title instructor',
+        populate: { path: 'instructor', select: 'name email' }
+      });
+
+    if (!cert) {
+      res.status(404);
+      throw new Error('Certificate not found');
+    }
+
+    // Auth check: student owner, course instructor, or admin
+    const isOwner = cert.userId._id.toString() === req.user._id.toString();
+    const isInstructor = cert.courseId.instructor._id.toString() === req.user._id.toString();
+    const isAdmin = req.user.role === 'admin';
+
+    if (!isOwner && !isInstructor && !isAdmin) {
+      res.status(403);
+      throw new Error('Not authorized to view this certificate');
+    }
+
+    res.json({ success: true, data: cert });
+  } catch (error) { next(error); }
+};
+
 // LEGACY SUPPORT
 export const generateCertificate = requestCertificate;
+
 export const getCertificate = async (req, res, next) => {
     try {
         const cert = await Certificate.findOne({ userId: req.user._id, courseId: req.params.courseId }).populate('courseId', 'title');

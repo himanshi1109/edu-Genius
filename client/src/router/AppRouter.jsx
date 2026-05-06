@@ -29,6 +29,8 @@ const QuizPage = lazy(() => import('@/pages/student/QuizPage'));
 const FlashcardsPage = lazy(() => import('@/pages/student/FlashcardsPage'));
 const ProgressTracker = lazy(() => import('@/pages/student/ProgressTracker'));
 const CertificatePage = lazy(() => import('@/pages/student/CertificatePage'));
+const StudentCertificates = lazy(() => import('@/pages/student/StudentCertificates'));
+
 const CourseBuilder = lazy(() => import('@/pages/instructor/CourseBuilder'));
 const ModuleBuilder = lazy(() => import('@/pages/instructor/ModuleBuilder'));
 const CertificateApproval = lazy(() => import('@/pages/instructor/CertificateApproval'));
@@ -98,7 +100,12 @@ const AppRouter = () => {
             <Route path="/student/flashcards/:lessonId" element={<RoleRoute role={['student', 'instructor']}><FlashcardsPage /></RoleRoute>} />
             <Route path="/student/course-flashcards/:courseId" element={<RoleRoute role={['student', 'instructor']}><FlashcardsPage /></RoleRoute>} />
             <Route path="/student/progress/:id" element={<RoleRoute role="student"><ProgressTracker /></RoleRoute>} />
-            <Route path="/student/certificate/:id" element={<RoleRoute role="student"><CertificatePage /></RoleRoute>} />
+            <Route path="/student/certificates" element={<RoleRoute role={['student', 'instructor', 'admin']}><StudentCertificates /></RoleRoute>} />
+            <Route path="/student/certificate/:id" element={<RoleRoute role={['student', 'instructor', 'admin']}><CertificatePage /></RoleRoute>} />
+
+
+
+
 
             {/* Shared routes inside Layout */}
             <Route path="/courses" element={<CourseCatalog />} />

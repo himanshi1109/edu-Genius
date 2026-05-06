@@ -101,7 +101,9 @@ const StudentDashboard = () => {
           value={completedCount}
           icon="Award"
           trend={completedCount > 0 ? 8 : 0}
+          onClick={() => navigate('/student/certificates')}
         />
+
         <StatCard
           title="Avg Quiz Score"
           value={`${avgScore}%`}

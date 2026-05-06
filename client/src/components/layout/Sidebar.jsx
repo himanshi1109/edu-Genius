@@ -27,8 +27,10 @@ import GradientText from '@/components/ui/GradientText';
 const studentLinks = [
   { path: '/student/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { path: '/courses', label: 'All Courses', icon: BookOpen },
+  { path: '/student/certificates', label: 'My Certificates', icon: Award },
   { path: '/student/profile', label: 'My Profile', icon: User },
 ];
+
 
 const instructorLinks = [
   { path: '/instructor/dashboard', label: 'Dashboard', icon: BarChart2 },

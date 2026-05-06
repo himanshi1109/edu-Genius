@@ -10,7 +10,9 @@ const StatCard = ({
   trend,
   trendLabel,
   className = '',
+  onClick,
 }) => {
+
   const [displayValue, setDisplayValue] = useState(0);
   const targetValue =
     typeof value === 'number' ? value : parseInt(value) || 0;
@@ -41,9 +43,11 @@ const StatCard = ({
 
   return (
     <motion.div
-      className={`glass-card p-5 ${className}`}
+      className={`glass-card p-5 ${className} ${onClick ? 'cursor-pointer' : ''}`}
+      onClick={onClick}
       whileHover={{ y: -4, transition: { type: 'spring', stiffness: 400 } }}
     >
+
       <div className="flex items-start justify-between mb-3">
         <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#285A48] to-[#468A73] flex items-center justify-center">
           {IconComponent && (

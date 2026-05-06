@@ -1,6 +1,7 @@
 import express from 'express';
 import { body } from 'express-validator';
-import { registerUser, loginUser, getMe } from '../controllers/authController.js';
+import { registerUser, loginUser, getMe, updateProfile } from '../controllers/authController.js';
+
 import { protect } from '../middleware/authMiddleware.js';
 import validate from '../middleware/validateMiddleware.js';
 
@@ -42,5 +43,7 @@ router.post(
 );
 
 router.get('/me', protect, getMe);
+router.put('/profile', protect, updateProfile);
+
 
 export default router;

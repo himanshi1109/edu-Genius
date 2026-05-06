@@ -10,8 +10,11 @@ import {
   Search,
   Filter,
   Award,
-  MessageCircle
+  MessageCircle,
+  Eye
 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+
 import certificateService from '@/services/certificateService';
 import { addToast } from '@/store/slices/uiSlice';
 import GlowCard from '@/components/ui/GlowCard';
@@ -52,7 +55,10 @@ const CertificateApproval = () => {
     }
   };
 
+  const navigate = useNavigate();
+
   const handleStatusUpdate = async (id, status) => {
+
     try {
       await certificateService.updateCertificateStatus(id, status, status === 'rejected' ? rejectionReason : '');
       dispatch(addToast({ message: `Certificate ${status} successfully`, type: 'success' }));
@@ -148,14 +154,26 @@ const CertificateApproval = () => {
                 </div>
 
                 <div className="flex items-center gap-3">
-                  <Badge 
-                    variant={
-                      req.status === 'approved' ? 'success' : 
-                      req.status === 'rejected' ? 'danger' : 'warning'
-                    }
-                  >
-                    {req.status}
-                  </Badge>
+                  <div className="flex items-center gap-2">
+                    <AnimatedButton 
+                      variant="outline" 
+                      size="sm" 
+                      icon={Eye}
+                      onClick={() => navigate(`/student/certificate/${req.courseId?._id || req.courseId}`)}
+                    >
+                      Preview
+                    </AnimatedButton>
+
+                    <Badge 
+                      variant={
+                        req.status === 'approved' ? 'success' : 
+                        req.status === 'rejected' ? 'danger' : 'warning'
+                      }
+                    >
+                      {req.status}
+                    </Badge>
+                  </div>
+
 
                   {req.status === 'pending' && (
                     <div className="flex items-center gap-2">
