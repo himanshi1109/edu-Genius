@@ -3,7 +3,8 @@ import { motion } from 'framer-motion';
 import { BookOpen, Users, Play } from 'lucide-react';
 import ProgressRing from '@/components/ui/ProgressRing';
 import AnimatedButton from '@/components/ui/AnimatedButton';
-import { getTotalLessons, getTotalModules, calculateCompletion } from '@/utils/helpers';
+import { getTotalLessons, getTotalModules, calculateCompletion, getMediaUrl } from '@/utils/helpers';
+
 
 const CourseCard = ({
   course,
@@ -18,11 +19,8 @@ const CourseCard = ({
   const completedCount = progress?.completedLessons?.length || 0;
   const completionPercent = calculateCompletion(completedCount, totalLessons);
 
-  const thumbnailUrl = course.thumbnail
-    ? course.thumbnail.startsWith('http')
-      ? course.thumbnail
-      : `http://localhost:8080${course.thumbnail}`
-    : null;
+  const thumbnailUrl = getMediaUrl(course.thumbnail);
+
 
   return (
     <motion.div

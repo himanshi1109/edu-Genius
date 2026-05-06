@@ -11,7 +11,8 @@ import Badge from '@/components/ui/Badge';
 import AnimatedButton from '@/components/ui/AnimatedButton';
 import SkeletonLoader from '@/components/ui/SkeletonLoader';
 import certificateService from '@/services/certificateService';
-import { calculateCompletion, getTotalLessons, getScoreColor } from '@/utils/helpers';
+import { calculateCompletion, getTotalLessons, getScoreColor, getMediaUrl } from '@/utils/helpers';
+
 import { PROGRESS_STATES } from '@/utils/constants';
 
 const pageV = { initial: { opacity: 0, y: 20 }, animate: { opacity: 1, y: 0 }, exit: { opacity: 0, y: -20 } };
@@ -40,7 +41,8 @@ const ProgressTracker = () => {
   const avgScore = quizScores.length ? Math.round(quizScores.reduce((a, q) => a + (q.score || 0), 0) / quizScores.length) : 0;
   const currentState = progressData?.state || 'not_started';
   const currentStateIdx = stateSteps.indexOf(currentState);
-  const thumbUrl = courseData.thumbnail ? (courseData.thumbnail.startsWith('http') ? courseData.thumbnail : `http://localhost:8080${courseData.thumbnail}`) : null;
+  const thumbUrl = getMediaUrl(courseData.thumbnail);
+
 
   const [certStatus, setCertStatus] = useState(null); // null, 'pending', 'approved', 'rejected'
   const [requesting, setRequesting] = useState(false);

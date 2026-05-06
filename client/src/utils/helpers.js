@@ -87,3 +87,19 @@ export const strengthLabels = ['Weak', 'Fair', 'Good', 'Strong'];
 export const cn = (...classes) => {
   return classes.filter(Boolean).join(' ');
 };
+
+export const getMediaUrl = (path) => {
+  if (!path) return null;
+  if (path.startsWith('http')) return path;
+  
+  const apiBase = import.meta.env.VITE_API_URL || '';
+  // If apiBase is relative (like '/api'), we need to handle the prefix carefully
+  if (apiBase === '/api') {
+    return path.startsWith('/') ? path : `/${path}`;
+  }
+  
+  // For local development or absolute API URLs
+  const base = apiBase.replace('/api', '') || 'http://localhost:8080';
+  return path.startsWith('/') ? `${base}${path}` : `${base}/${path}`;
+};
+

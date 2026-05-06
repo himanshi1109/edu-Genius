@@ -4,11 +4,14 @@ import { useDispatch, useSelector } from 'react-redux';
 import { motion } from 'framer-motion';
 import { fetchCourses, fetchPendingCourses, adminDeleteCourse } from '@/store/slices/courseSlice';
 import { fetchAllUsers } from '@/store/slices/userSlice';
-import { getGreeting } from '@/utils/helpers';
+import { addToast } from '@/store/slices/uiSlice';
+import { getGreeting, getMediaUrl } from '@/utils/helpers';
 import StatCard from '@/components/shared/StatCard';
 import GlowCard from '@/components/ui/GlowCard';
 import { DashboardSkeleton } from '@/components/ui/SkeletonLoader';
 import { Users, BookOpen, Clock, ShieldCheck, Pencil, Trash2 } from 'lucide-react';
+import ConfirmationModal from '@/components/ui/ConfirmationModal';
+
 
 const pageV = { initial: { opacity: 0, y: 20 }, animate: { opacity: 1, y: 0 }, exit: { opacity: 0, y: -20 } };
 
@@ -18,6 +21,11 @@ const AdminDashboard = () => {
   const { user } = useSelector(s => s.auth || {});
   const { courses, pendingCourses, isLoading: coursesLoading } = useSelector(s => s.courses || {});
   const { usersList, isLoading: usersLoading } = useSelector(s => s.users || {});
+  
+  const [deleteId, setDeleteId] = React.useState(null);
+  const [editId, setEditId] = React.useState(null);
+  const [isDeleting, setIsDeleting] = React.useState(false);
+
 
   useEffect(() => {
     // Only fetch if data is missing or empty to reduce API load
@@ -26,11 +34,25 @@ const AdminDashboard = () => {
     if (!pendingCourses || pendingCourses.length === 0) dispatch(fetchPendingCourses());
   }, [dispatch, courses?.length, usersList?.length, pendingCourses?.length]);
 
-  const handleDeleteCourse = useCallback(async (id) => {
-    if (!window.confirm('Are you sure you want to delete this course? This action cannot be undone.')) return;
-    await dispatch(adminDeleteCourse(id));
-    dispatch(fetchCourses());
-  }, [dispatch]);
+  const confirmDelete = async () => {
+    if (!deleteId) return;
+    setIsDeleting(true);
+    try {
+      await dispatch(adminDeleteCourse(deleteId));
+      dispatch(addToast({ message: 'Course deleted successfully', type: 'success' }));
+    } finally {
+      setIsDeleting(false);
+      setDeleteId(null);
+    }
+  };
+
+  const confirmEdit = () => {
+    if (!editId) return;
+    const id = editId;
+    setEditId(null);
+    navigate(`/instructor/courses/${id}/edit`);
+  };
+
 
   const approvedCount = React.useMemo(() => 
     Array.isArray(courses) ? courses.filter(c => c.status === 'approved' || !c.status).length : 0,
@@ -74,10 +96,15 @@ const AdminDashboard = () => {
                   <div className="w-10 h-10 rounded-lg bg-[var(--accent-blue)]/10 flex items-center justify-center overflow-hidden border border-[var(--border)]">
                     {course.thumbnail ? (
                       <img 
-                        src={course.thumbnail.startsWith('http') ? course.thumbnail : `http://localhost:8080${course.thumbnail}`} 
+                        src={getMediaUrl(course.thumbnail)} 
                         alt="" 
                         className="w-full h-full object-cover"
+                        onError={(e) => {
+                          e.target.onerror = null;
+                          e.target.src = 'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=100&h=100&fit=crop';
+                        }}
                       />
+
                     ) : (
                       <BookOpen className="w-5 h-5 text-[var(--accent-blue)]" />
                     )}
@@ -105,15 +132,16 @@ const AdminDashboard = () => {
                     <Users className="w-4 h-4" />
                   </button>
                   <button 
-                    onClick={(e) => { e.stopPropagation(); navigate(`/instructor/courses/${course._id}/edit`); }} 
+                    onClick={(e) => { e.stopPropagation(); setEditId(course._id); }} 
                     className="p-1.5 text-[var(--text-muted)] hover:text-[var(--accent-blue)] rounded-lg hover:bg-[var(--accent-blue)]/10 transition-colors" 
                     title="Edit Course"
                   >
                     <Pencil className="w-4 h-4" />
                   </button>
-                  <button onClick={() => handleDeleteCourse(course._id)} className="p-1.5 text-[var(--text-muted)] hover:text-red-400 rounded-lg hover:bg-red-500/10 transition-colors" title="Delete Course">
+                  <button onClick={() => setDeleteId(course._id)} className="p-1.5 text-[var(--text-muted)] hover:text-red-400 rounded-lg hover:bg-red-500/10 transition-colors" title="Delete Course">
                     <Trash2 className="w-4 h-4" />
                   </button>
+
                 </div>
               </div>
             ))}
@@ -151,7 +179,30 @@ const AdminDashboard = () => {
           </div>
         </GlowCard>
       </div>
+
+      {/* Confirmation Modals */}
+      <ConfirmationModal
+        isOpen={!!deleteId}
+        onClose={() => setDeleteId(null)}
+        onConfirm={confirmDelete}
+        title="Delete Course?"
+        message="Are you sure you want to delete this course? This action is permanent and cannot be undone."
+        confirmLabel="Yes, Delete"
+        cancelLabel="No, Keep It"
+        isLoading={isDeleting}
+      />
+
+      <ConfirmationModal
+        isOpen={!!editId}
+        onClose={() => setEditId(null)}
+        onConfirm={confirmEdit}
+        title="Edit Course?"
+        message="Open the course builder to modify this course?"
+        confirmLabel="Yes, Edit"
+        cancelLabel="Cancel"
+      />
     </motion.div>
+
   );
 };
 

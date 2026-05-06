@@ -1,4 +1,13 @@
-import 'dotenv/config';
+import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+// Load .env from current directory or root or server folder
+dotenv.config(); // Default (root)
+dotenv.config({ path: path.join(__dirname, '..', '.env') }); // Look in server/ folder relative to this file
+
 
 import app from './app.js';
 import connectDB from './config/db.js';

@@ -67,7 +67,7 @@ const CourseBuilder = () => {
       setLessons(allLessons);
 
       if (currentCourse.thumbnail) {
-        setThumbPreview(currentCourse.thumbnail.startsWith('http') ? currentCourse.thumbnail : `http://localhost:8080${currentCourse.thumbnail}`);
+        setThumbPreview(currentCourse.thumbnail);
       }
     }
   }, [isEdit, currentCourse]);

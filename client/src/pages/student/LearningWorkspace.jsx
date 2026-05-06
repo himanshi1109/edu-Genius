@@ -14,7 +14,8 @@ import AnimatedButton from '@/components/ui/AnimatedButton';
 import GlowCard from '@/components/ui/GlowCard';
 import Badge from '@/components/ui/Badge';
 import SkeletonLoader from '@/components/ui/SkeletonLoader';
-import { calculateCompletion, getTotalLessons } from '@/utils/helpers';
+import { calculateCompletion, getTotalLessons, getMediaUrl } from '@/utils/helpers';
+
 
 const pageV = { initial: { opacity: 0, y: 20 }, animate: { opacity: 1, y: 0 }, exit: { opacity: 0, y: -20 } };
 
@@ -165,7 +166,8 @@ const LearningWorkspace = () => {
 
   if (isLoading || !currentCourse) return <div className="space-y-4"><SkeletonLoader height="60vh" /><SkeletonLoader lines={3} /></div>;
 
-  const videoUrl = activeLesson?.videoUrl ? (activeLesson.videoUrl.startsWith('http') ? activeLesson.videoUrl : `http://localhost:8080${activeLesson.videoUrl}`) : null;
+  const videoUrl = getMediaUrl(activeLesson?.videoUrl);
+
 
   return (
     <motion.div variants={pageV} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.35 }}>

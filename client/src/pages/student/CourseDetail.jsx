@@ -13,7 +13,8 @@ import ProgressRing from '@/components/ui/ProgressRing';
 import Badge from '@/components/ui/Badge';
 import SkeletonLoader from '@/components/ui/SkeletonLoader';
 import ConfirmationModal from '@/components/ui/ConfirmationModal';
-import { getTotalLessons, getTotalModules, calculateCompletion } from '@/utils/helpers';
+import { getTotalLessons, getTotalModules, calculateCompletion, getMediaUrl } from '@/utils/helpers';
+
 
 const pageV = { initial: { opacity: 0, y: 20 }, animate: { opacity: 1, y: 0 }, exit: { opacity: 0, y: -20 } };
 
@@ -70,7 +71,8 @@ const CourseDetail = () => {
   // if (isLoading || !currentCourse) {
 
   const c = courseData;
-  const thumbUrl = c.thumbnail ? (c.thumbnail.startsWith('http') ? c.thumbnail : `http://localhost:8080${c.thumbnail}`) : null;
+  const thumbUrl = getMediaUrl(c.thumbnail);
+
 
   return (
     <motion.div variants={pageV} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.35 }} className="space-y-8">

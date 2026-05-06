@@ -11,7 +11,8 @@ import GlowCard from '@/components/ui/GlowCard';
 import AnimatedButton from '@/components/ui/AnimatedButton';
 import EmptyState from '@/components/shared/EmptyState';
 import { SkeletonCard } from '@/components/ui/SkeletonLoader';
-import { getTotalLessons, getTotalModules, getGreeting } from '@/utils/helpers';
+import { getTotalLessons, getTotalModules, getGreeting, getMediaUrl } from '@/utils/helpers';
+
 
 const pageV = { initial: { opacity: 0, y: 20 }, animate: { opacity: 1, y: 0 }, exit: { opacity: 0, y: -20 } };
 
@@ -139,7 +140,8 @@ const InstructorDashboard = () => {
         ) : (
           <div className="space-y-3">
             {myCourses.map((course, i) => {
-              const thumbUrl = course.thumbnail ? (course.thumbnail.startsWith('http') ? course.thumbnail : `http://localhost:8080${course.thumbnail}`) : null;
+              const thumbUrl = getMediaUrl(course.thumbnail);
+
               return (
                 <motion.div key={course._id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
                   <GlowCard className="p-4 flex flex-col sm:flex-row items-center gap-4">
