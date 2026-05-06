@@ -4,8 +4,9 @@ import { useDispatch, useSelector } from 'react-redux';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   ChevronDown, ChevronUp, CheckCircle, Circle, Play, ChevronLeft, ChevronRight,
-  Brain, Layers, FileText, BookOpen, StickyNote, Bot, Send
+  Brain, Layers, FileText, BookOpen, StickyNote, Bot, Send, Menu, X
 } from 'lucide-react';
+
 import api from '@/services/api';
 import { fetchCourseById } from '@/store/slices/courseSlice';
 import { fetchProgress, updateProgress } from '@/store/slices/progressSlice';
@@ -39,6 +40,9 @@ const LearningWorkspace = () => {
   const [isAiTyping, setIsAiTyping] = useState(false);
   const [certificate, setCertificate] = useState(null);
   const [isRequestingCert, setIsRequestingCert] = useState(false);
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const [mobileToolsOpen, setMobileToolsOpen] = useState(false);
+
 
   useEffect(() => { 
     dispatch(fetchCourseById(id)); 
@@ -97,7 +101,9 @@ const LearningWorkspace = () => {
 
   const selectLesson = (lesson) => {
     setActiveLesson(lesson);
+    setMobileSidebarOpen(false);
     dispatch(updateProgress({ courseId: id, lessonId: lesson._id }));
+
   };
 
   const markComplete = async () => {
@@ -172,20 +178,56 @@ const LearningWorkspace = () => {
   return (
     <motion.div variants={pageV} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.35 }}>
       {/* Progress bar */}
-      <div className="fixed top-0 left-0 right-0 h-[3px] z-50 bg-[var(--bg-secondary)]">
+      <div className="fixed top-0 left-0 right-0 h-[3px] z-[60] bg-[var(--bg-secondary)]">
         <div className="h-full bg-gradient-to-r from-[var(--accent-blue)] to-[var(--accent-purple)] transition-all duration-700" style={{ width: `${completionPct}%` }} />
       </div>
 
-      <div className="flex gap-0 -mx-6 lg:-mx-8 -mt-6 lg:-mt-8 h-[calc(100vh-0px)]">
-        {/* LEFT PANEL */}
-        <div className="w-64 flex-shrink-0 border-r border-[var(--border)] overflow-y-auto bg-[var(--bg-primary)]/50 backdrop-blur-sm hidden md:block">
-          <div className="p-4 border-b border-[var(--border)]">
-            <h3 className="font-heading font-semibold text-sm text-[var(--text-primary)] line-clamp-2">{currentCourse.title}</h3>
-            <div className="mt-2 h-1.5 rounded-full bg-[var(--bg-secondary)]">
-              <div className="h-full rounded-full bg-gradient-to-r from-[var(--accent-blue)] to-[var(--accent-purple)] transition-all" style={{ width: `${completionPct}%` }} />
+      {/* Mobile Header */}
+      <div className="lg:hidden sticky top-0 z-50 flex items-center justify-between p-4 bg-[var(--bg-primary)]/80 backdrop-blur-md border-b border-[var(--border)] -mx-6 -mt-6">
+        <button onClick={() => setMobileSidebarOpen(true)} className="p-2 rounded-lg bg-[var(--bg-secondary)] text-[var(--text-primary)]">
+          <Menu className="w-5 h-5" />
+        </button>
+        <span className="text-sm font-semibold text-[var(--text-primary)] truncate max-w-[150px]">
+          {activeLesson?.title || 'Learning'}
+        </span>
+        <button onClick={() => setMobileToolsOpen(true)} className="p-2 rounded-lg bg-[var(--accent-blue)]/10 text-[var(--accent-blue)]">
+          <Brain className="w-5 h-5" />
+        </button>
+      </div>
+
+      <div className="flex gap-0 -mx-6 lg:-mx-8 -mt-6 lg:-mt-8 h-[calc(100vh-0px)] overflow-hidden">
+        {/* Sidebar Overlay */}
+        <AnimatePresence>
+          {(mobileSidebarOpen || mobileToolsOpen) && (
+            <motion.div 
+              initial={{ opacity: 0 }} 
+              animate={{ opacity: 1 }} 
+              exit={{ opacity: 0 }} 
+              onClick={() => { setMobileSidebarOpen(false); setMobileToolsOpen(false); }}
+              className="lg:hidden fixed inset-0 z-40 bg-black/60 backdrop-blur-sm"
+            />
+          )}
+        </AnimatePresence>
+
+        {/* LEFT PANEL (Lesson List) */}
+
+        <div className={`
+          fixed inset-y-0 left-0 z-50 w-72 bg-[var(--bg-primary)] border-r border-[var(--border)] transition-transform duration-300 lg:relative lg:translate-x-0 lg:z-0 lg:w-64 lg:block
+          ${mobileSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+        `}>
+          <div className="p-4 border-b border-[var(--border)] flex items-center justify-between">
+            <div>
+              <h3 className="font-heading font-semibold text-sm text-[var(--text-primary)] line-clamp-2">{currentCourse.title}</h3>
+              <div className="mt-2 h-1.5 rounded-full bg-[var(--bg-secondary)]">
+                <div className="h-full rounded-full bg-gradient-to-r from-[var(--accent-blue)] to-[var(--accent-purple)] transition-all" style={{ width: `${completionPct}%` }} />
+              </div>
+              <p className="text-xs text-[var(--text-muted)] mt-1">{completedLessonIds.length}/{totalLessons} lessons</p>
             </div>
-            <p className="text-xs text-[var(--text-muted)] mt-1">{completedLessonIds.length}/{totalLessons} lessons</p>
+            <button onClick={() => setMobileSidebarOpen(false)} className="lg:hidden p-2 text-[var(--text-muted)]">
+              <X className="w-5 h-5" />
+            </button>
           </div>
+
 
           {(currentCourse.modules || []).map((mod) => (
             <div key={mod._id}>
@@ -334,8 +376,18 @@ const LearningWorkspace = () => {
           </div>
         </div>
 
-        {/* RIGHT PANEL */}
-        <div className="w-72 flex-shrink-0 border-l border-[var(--border)] overflow-y-auto bg-[var(--bg-primary)]/50 backdrop-blur-sm hidden lg:block">
+        {/* RIGHT PANEL (AI Tools) */}
+        <div className={`
+          fixed inset-y-0 right-0 z-50 w-80 bg-[var(--bg-primary)] border-l border-[var(--border)] transition-transform duration-300 lg:relative lg:translate-x-0 lg:z-0 lg:w-72 lg:block
+          ${mobileToolsOpen ? 'translate-x-0' : 'translate-x-full'}
+        `}>
+          <div className="lg:hidden p-4 border-b border-[var(--border)] flex items-center justify-between">
+            <h3 className="font-heading font-semibold text-[var(--text-primary)]">Course Tools</h3>
+            <button onClick={() => setMobileToolsOpen(false)} className="p-2 text-[var(--text-muted)]">
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+
           <div className="flex border-b border-[var(--border)]">
             {[{ key: 'tools', label: 'AI Tools', icon: Brain }, { key: 'ai', label: 'AI Tutor', icon: Bot }, { key: 'notes', label: 'Notes', icon: StickyNote }, { key: 'scores', label: 'Scores', icon: Layers }].map((t) => (
               <button key={t.key} onClick={() => setRightTab(t.key)}
